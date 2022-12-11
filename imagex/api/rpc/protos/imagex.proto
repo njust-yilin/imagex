@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+// The service definition.
+service Imagex {
+    rpc Ping (Empty) returns (SuccessReply) {};
+    rpc InferReady (InferReadyRequest) returns (SuccessReply);
+    rpc Exit (Empty) returns (Empty);
+}
+  
+message Empty {
+}
+
+message SuccessReply {
+    bool ok = 1;
+}
+
+message PingReply {
+    bool ok = 1;
+}
+
+// image_index:int,
+// mask_index:int,
+// timestamp:int,
+// camera_id:str,
+// capture_config:str,
+// capture_index:int,
+message InferReadyRequest {
+    int32 image_index = 1;
+    int32 mask_index = 2;
+    int32 timestamp = 3;
+    string camera_id = 4;
+    string capture_config = 5;
+    int32 capture_index = 6;
+    int32 infer_timestamp = 7;
+    string network = 8;
+    bool ok = 9;
+    string ng_stats = 10;
+    string results = 11;
+}
