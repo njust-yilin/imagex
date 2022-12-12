@@ -1,17 +1,18 @@
 from PySide6.QtWidgets import QApplication
 from loguru import logger
 from PySide6 import QtGui
-import grpc
-from concurrent import futures
+import time
 
 from imagex.services import Service
 from imagex.settings import configs
 from imagex.ui.main_window import MainWindow
-from imagex.api.rpc.ui import ui_pb2, ui_pb2_grpc
+from imagex.api.rpc.imagex import imagex_pb2_grpc, imagex_pb2
 from imagex.ui.ui_thread import UIThread
+from core.utils.grpc_help import create_rpc_server
+from imagex.api.rpc import stub_helper
 
 
-class UIService(Service, ui_pb2_grpc.UIServicer):
+class UIService(Service, imagex_pb2_grpc.UIServicer):
     def __init__(self):
         Service.__init__(self)
     
@@ -23,33 +24,42 @@ class UIService(Service, ui_pb2_grpc.UIServicer):
         app.setWindowIcon(icon)
 
         self.ui_thread = UIThread()
+        self.ui_thread.exit_ui.connect(self.exit)
         win = MainWindow(self.ui_thread)
 
         # start rpc server
         self.start_rpc_server()
 
-        logger.info("StartedUIViewService")
+        logger.info(f"Started {self.name}")
         app.exec()
-        self.server.stop(0)
         del app
 
     def start_rpc_server(self):
-        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-        ui_pb2_grpc.add_UIServicer_to_server(self, self.server)
-        self.server.add_insecure_port(f'[::]:{configs.UI_RPC_PORT}')
+        self.server = create_rpc_server(configs.UI_RPC_PORT)
+        imagex_pb2_grpc.add_UIServicer_to_server(self, self.server)
         self.server.start()
-        logger.info(f"RPC server started on port {configs.UI_RPC_PORT}")
+        logger.info(f"{self.name} RPC server started on port {configs.UI_RPC_PORT}")
     
-    def Ping(self, request, context):
-        return ui_pb2.SuccessReply(ok=True)
+    def exit(self):
+        logger.info("Notify Imagex Service stopped")
+        stub_helper.get_imagex_stub().Exit(imagex_pb2.Empty())
+        # self.server.stop(0)
+        return super().exit()
 
-    def ImageUpdate(self, request:ui_pb2.ImageUpdateRequest, context):
+    # ===============================RPC API =============================
+    def Ping(self, request, context):
+        return imagex_pb2.SuccessReply(ok=True)
+
+    def UpdateImage(self, request:imagex_pb2.UpdateImageRequest, context):
         self.ui_thread.image_ready(request)
-        return ui_pb2.SuccessReply(ok=True)
+        return imagex_pb2.SuccessReply(ok=True)
 
     def Exit(self, request, context):
-        self.ui_thread.exit()
-        return ui_pb2.Empty()
+        self.server.stop()
+        return imagex_pb2.Empty()
+
+    def Initialize(self, request, context):
+        return imagex_pb2.SuccessReply(ok=True)
 
 
 def get_service():

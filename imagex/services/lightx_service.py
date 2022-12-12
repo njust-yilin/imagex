@@ -2,64 +2,75 @@ from loguru import logger
 import time
 import numpy as np
 import grpc
+import time
 
 # from imagex.pipe_elements import UIQueueElement
 from core.communication import ImageSharedMemory
 from imagex.services import Service
 from imagex.settings import configs
 from lightx.device.camera.fake_camera import FakeCamera
-from imagex.api.rpc.ui import ui_pb2, ui_pb2_grpc
-from core.utils import get_timestamp_ms
+from imagex.api.rpc.imagex import imagex_pb2, imagex_pb2_grpc
+from core.utils import get_timestamp_ms, create_rpc_channel, create_rpc_server
 
 
-class LightXService(Service):
+class LightxService(Service, imagex_pb2_grpc.LightxServicer):
     def __init__(self):
         Service.__init__(self)
 
         # 连接 rpc 服务器
         channel = grpc.insecure_channel(f'localhost:{configs.UI_RPC_PORT}')
-        self.ui_rpc_stub = ui_pb2_grpc.UIStub(channel)
+        self.ui_rpc_stub = imagex_pb2_grpc.UIStub(channel)
         logger.info(f'Connected to localhost:{configs.UI_RPC_PORT}')
 
     def setup(self):
         # TODO: create camera's ImageSharedMemory
         self.images_producer = ImageSharedMemory(configs.IMAGEX_IMAGE_IMAGE_NAME, (2048, 2448, 3), 20)
         self.masks_producer = ImageSharedMemory(configs.IMAGEX_MASK_IMAGE_NAME, (2048, 2448, 3), 20)
-        # self.ui_queue = PipeProducer(UIQueueElement, configs.UI_QUEUE_NAME)
+
+        # start rpc server
+        self.start_rpc_server()
 
         self.fake_camera = FakeCamera('Fake001', 2448, 2048)
         self.fake_camera.add_image_received_callback(self.on_image_ready)
         time.sleep(2)
         self.fake_camera.start_grab()
     
+    def cleanup(self):
+        time.sleep(0.1)
+        self.server.stop(0)
+        return super().cleanup()
+
+    def start_rpc_server(self):
+        self.server = create_rpc_server(configs.LIGHTX_RPC_PORT)
+        imagex_pb2_grpc.add_LightxServicer_to_server(self, self.server)
+        self.server.start()
+        logger.info(f"{self.name} RPC server started on port {configs.LIGHTX_RPC_PORT}")
+    
     def routine(self):
         time.sleep(.2)
-        self.fake_camera.trigger()
+        # self.fake_camera.trigger()
 
     def on_image_ready(self, ts:int, image:np.ndarray):
         ts = get_timestamp_ms()
         image_index = self.images_producer.put(image)
         mask_index = self.masks_producer.put(image)
-        response = self.ui_rpc_stub.ImageUpdate(ui_pb2.ImageUpdateRequest(
+        response = self.ui_rpc_stub.UpdateImage(imagex_pb2.UpdateImageRequest(
             image_index=image_index,
             mask_index=mask_index,
         ))
         logger.info(f'got response{response} took {get_timestamp_ms()-ts}ms')
 
-        # element = UIQueueElement(
-        #     image_index=image_index,
-        #     mask_index=mask_index,
-        #     image_hwc=(2048, 2448, 3),
-        #     timestamp=ts,
-        #     camera_id=self.fake_camera.serial_number,
-        #     part_id='',
-        #     part_timestamp=0,
-        #     network='test',
-        #     capture_config='test',
-        #     capture_index=0,
-        #     ok=True
-        # )
-        # self.ui_queue.put(element)
+    # =================RPC API =================
+    def Ping(self, request, context):
+        return imagex_pb2.SuccessReply(ok=True)
+    
+    def Exit(self, request, context):
+        self._stop_event.set()
+        return imagex_pb2.Empty()
+
+    def Initialize(self, request, context):
+        return imagex_pb2.SuccessReply()
+
 
 def get_service():
-    return LightXService()
+    return LightxService()

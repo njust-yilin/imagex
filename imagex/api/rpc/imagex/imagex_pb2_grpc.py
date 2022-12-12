@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import imagex_pb2 as imagex__pb2
+import imagex.api.rpc.imagex.imagex_pb2 as imagex__pb2
 
 
 class ImagexStub(object):
@@ -30,6 +30,21 @@ class ImagexStub(object):
                 request_serializer=imagex__pb2.Empty.SerializeToString,
                 response_deserializer=imagex__pb2.Empty.FromString,
                 )
+        self.DeepxReady = channel.unary_unary(
+                '/Imagex/DeepxReady',
+                request_serializer=imagex__pb2.Empty.SerializeToString,
+                response_deserializer=imagex__pb2.SuccessReply.FromString,
+                )
+        self.UIReady = channel.unary_unary(
+                '/Imagex/UIReady',
+                request_serializer=imagex__pb2.Empty.SerializeToString,
+                response_deserializer=imagex__pb2.SuccessReply.FromString,
+                )
+        self.LightxReady = channel.unary_unary(
+                '/Imagex/LightxReady',
+                request_serializer=imagex__pb2.Empty.SerializeToString,
+                response_deserializer=imagex__pb2.SuccessReply.FromString,
+                )
 
 
 class ImagexServicer(object):
@@ -54,6 +69,25 @@ class ImagexServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def DeepxReady(self, request, context):
+        """Ready rpc
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UIReady(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def LightxReady(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ImagexServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -71,6 +105,21 @@ def add_ImagexServicer_to_server(servicer, server):
                     servicer.Exit,
                     request_deserializer=imagex__pb2.Empty.FromString,
                     response_serializer=imagex__pb2.Empty.SerializeToString,
+            ),
+            'DeepxReady': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeepxReady,
+                    request_deserializer=imagex__pb2.Empty.FromString,
+                    response_serializer=imagex__pb2.SuccessReply.SerializeToString,
+            ),
+            'UIReady': grpc.unary_unary_rpc_method_handler(
+                    servicer.UIReady,
+                    request_deserializer=imagex__pb2.Empty.FromString,
+                    response_serializer=imagex__pb2.SuccessReply.SerializeToString,
+            ),
+            'LightxReady': grpc.unary_unary_rpc_method_handler(
+                    servicer.LightxReady,
+                    request_deserializer=imagex__pb2.Empty.FromString,
+                    response_serializer=imagex__pb2.SuccessReply.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -131,5 +180,503 @@ class Imagex(object):
         return grpc.experimental.unary_unary(request, target, '/Imagex/Exit',
             imagex__pb2.Empty.SerializeToString,
             imagex__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DeepxReady(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Imagex/DeepxReady',
+            imagex__pb2.Empty.SerializeToString,
+            imagex__pb2.SuccessReply.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def UIReady(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Imagex/UIReady',
+            imagex__pb2.Empty.SerializeToString,
+            imagex__pb2.SuccessReply.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def LightxReady(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Imagex/LightxReady',
+            imagex__pb2.Empty.SerializeToString,
+            imagex__pb2.SuccessReply.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+
+class DeepxStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.Ping = channel.unary_unary(
+                '/Deepx/Ping',
+                request_serializer=imagex__pb2.Empty.SerializeToString,
+                response_deserializer=imagex__pb2.SuccessReply.FromString,
+                )
+        self.Infer = channel.unary_unary(
+                '/Deepx/Infer',
+                request_serializer=imagex__pb2.InferRequest.SerializeToString,
+                response_deserializer=imagex__pb2.SuccessReply.FromString,
+                )
+        self.Exit = channel.unary_unary(
+                '/Deepx/Exit',
+                request_serializer=imagex__pb2.Empty.SerializeToString,
+                response_deserializer=imagex__pb2.Empty.FromString,
+                )
+        self.Initialize = channel.unary_unary(
+                '/Deepx/Initialize',
+                request_serializer=imagex__pb2.Empty.SerializeToString,
+                response_deserializer=imagex__pb2.SuccessReply.FromString,
+                )
+
+
+class DeepxServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def Ping(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Infer(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Exit(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Initialize(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_DeepxServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'Ping': grpc.unary_unary_rpc_method_handler(
+                    servicer.Ping,
+                    request_deserializer=imagex__pb2.Empty.FromString,
+                    response_serializer=imagex__pb2.SuccessReply.SerializeToString,
+            ),
+            'Infer': grpc.unary_unary_rpc_method_handler(
+                    servicer.Infer,
+                    request_deserializer=imagex__pb2.InferRequest.FromString,
+                    response_serializer=imagex__pb2.SuccessReply.SerializeToString,
+            ),
+            'Exit': grpc.unary_unary_rpc_method_handler(
+                    servicer.Exit,
+                    request_deserializer=imagex__pb2.Empty.FromString,
+                    response_serializer=imagex__pb2.Empty.SerializeToString,
+            ),
+            'Initialize': grpc.unary_unary_rpc_method_handler(
+                    servicer.Initialize,
+                    request_deserializer=imagex__pb2.Empty.FromString,
+                    response_serializer=imagex__pb2.SuccessReply.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'Deepx', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+
+
+ # This class is part of an EXPERIMENTAL API.
+class Deepx(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def Ping(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Deepx/Ping',
+            imagex__pb2.Empty.SerializeToString,
+            imagex__pb2.SuccessReply.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Infer(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Deepx/Infer',
+            imagex__pb2.InferRequest.SerializeToString,
+            imagex__pb2.SuccessReply.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Exit(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Deepx/Exit',
+            imagex__pb2.Empty.SerializeToString,
+            imagex__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Initialize(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Deepx/Initialize',
+            imagex__pb2.Empty.SerializeToString,
+            imagex__pb2.SuccessReply.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+
+class UIStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.Ping = channel.unary_unary(
+                '/UI/Ping',
+                request_serializer=imagex__pb2.Empty.SerializeToString,
+                response_deserializer=imagex__pb2.SuccessReply.FromString,
+                )
+        self.UpdateImage = channel.unary_unary(
+                '/UI/UpdateImage',
+                request_serializer=imagex__pb2.UpdateImageRequest.SerializeToString,
+                response_deserializer=imagex__pb2.SuccessReply.FromString,
+                )
+        self.Exit = channel.unary_unary(
+                '/UI/Exit',
+                request_serializer=imagex__pb2.Empty.SerializeToString,
+                response_deserializer=imagex__pb2.Empty.FromString,
+                )
+        self.Initialize = channel.unary_unary(
+                '/UI/Initialize',
+                request_serializer=imagex__pb2.Empty.SerializeToString,
+                response_deserializer=imagex__pb2.SuccessReply.FromString,
+                )
+
+
+class UIServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def Ping(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpdateImage(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Exit(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Initialize(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_UIServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'Ping': grpc.unary_unary_rpc_method_handler(
+                    servicer.Ping,
+                    request_deserializer=imagex__pb2.Empty.FromString,
+                    response_serializer=imagex__pb2.SuccessReply.SerializeToString,
+            ),
+            'UpdateImage': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateImage,
+                    request_deserializer=imagex__pb2.UpdateImageRequest.FromString,
+                    response_serializer=imagex__pb2.SuccessReply.SerializeToString,
+            ),
+            'Exit': grpc.unary_unary_rpc_method_handler(
+                    servicer.Exit,
+                    request_deserializer=imagex__pb2.Empty.FromString,
+                    response_serializer=imagex__pb2.Empty.SerializeToString,
+            ),
+            'Initialize': grpc.unary_unary_rpc_method_handler(
+                    servicer.Initialize,
+                    request_deserializer=imagex__pb2.Empty.FromString,
+                    response_serializer=imagex__pb2.SuccessReply.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'UI', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+
+
+ # This class is part of an EXPERIMENTAL API.
+class UI(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def Ping(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/UI/Ping',
+            imagex__pb2.Empty.SerializeToString,
+            imagex__pb2.SuccessReply.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def UpdateImage(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/UI/UpdateImage',
+            imagex__pb2.UpdateImageRequest.SerializeToString,
+            imagex__pb2.SuccessReply.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Exit(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/UI/Exit',
+            imagex__pb2.Empty.SerializeToString,
+            imagex__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Initialize(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/UI/Initialize',
+            imagex__pb2.Empty.SerializeToString,
+            imagex__pb2.SuccessReply.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+
+class LightxStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.Ping = channel.unary_unary(
+                '/Lightx/Ping',
+                request_serializer=imagex__pb2.Empty.SerializeToString,
+                response_deserializer=imagex__pb2.SuccessReply.FromString,
+                )
+        self.Exit = channel.unary_unary(
+                '/Lightx/Exit',
+                request_serializer=imagex__pb2.Empty.SerializeToString,
+                response_deserializer=imagex__pb2.Empty.FromString,
+                )
+        self.Initialize = channel.unary_unary(
+                '/Lightx/Initialize',
+                request_serializer=imagex__pb2.Empty.SerializeToString,
+                response_deserializer=imagex__pb2.SuccessReply.FromString,
+                )
+
+
+class LightxServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def Ping(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Exit(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Initialize(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_LightxServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'Ping': grpc.unary_unary_rpc_method_handler(
+                    servicer.Ping,
+                    request_deserializer=imagex__pb2.Empty.FromString,
+                    response_serializer=imagex__pb2.SuccessReply.SerializeToString,
+            ),
+            'Exit': grpc.unary_unary_rpc_method_handler(
+                    servicer.Exit,
+                    request_deserializer=imagex__pb2.Empty.FromString,
+                    response_serializer=imagex__pb2.Empty.SerializeToString,
+            ),
+            'Initialize': grpc.unary_unary_rpc_method_handler(
+                    servicer.Initialize,
+                    request_deserializer=imagex__pb2.Empty.FromString,
+                    response_serializer=imagex__pb2.SuccessReply.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'Lightx', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+
+
+ # This class is part of an EXPERIMENTAL API.
+class Lightx(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def Ping(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Lightx/Ping',
+            imagex__pb2.Empty.SerializeToString,
+            imagex__pb2.SuccessReply.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Exit(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Lightx/Exit',
+            imagex__pb2.Empty.SerializeToString,
+            imagex__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Initialize(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Lightx/Initialize',
+            imagex__pb2.Empty.SerializeToString,
+            imagex__pb2.SuccessReply.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

@@ -5,7 +5,7 @@ from typing import List
 import time
 
 from imagex.settings import configs
-from imagex.api.rpc.ui import ui_pb2
+from imagex.api.rpc.imagex import imagex_pb2
 from core.communication import ImageSharedMemory
 
 
@@ -30,12 +30,11 @@ class UIThread(QThread):
             time.sleep(1)
         logger.info('UIThread quited')
 
-    def image_ready(self, request:ui_pb2.ImageUpdateRequest):
+    def image_ready(self, request:imagex_pb2.UpdateImageRequest):
         self.on_image_received.emit(request)
 
     def exit(self):
         self.stop_event.set()
         self.wait()
+        logger.info("Emit exit ui signal")
         self.exit_ui.emit()
-        # del self.images_comsumer
-        # del self.ui_queue

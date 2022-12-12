@@ -13,12 +13,14 @@ class Service(Process):
         logger.info(f"Setup service: {self.name}")
 
     def routine(self):
-        pass
+        logger.info(f"routine service: {self.name}")
+        time.sleep(1)
 
     def cleanup(self):
         logger.info(f"Cleanup service: {self.name}")
 
     def exit(self):
+        logger.info(f"Exit service: {self.name}")
         self._stop_event.set()
 
     def run(self):
