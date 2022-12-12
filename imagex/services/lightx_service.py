@@ -9,6 +9,7 @@ from imagex.services import Service
 from imagex.settings import configs
 from lightx.device.camera.fake_camera import FakeCamera
 from imagex.api.rpc.ui import ui_pb2, ui_pb2_grpc
+from core.utils import get_timestamp_ms
 
 
 class LightXService(Service):
@@ -28,20 +29,22 @@ class LightXService(Service):
 
         self.fake_camera = FakeCamera('Fake001', 2448, 2048)
         self.fake_camera.add_image_received_callback(self.on_image_ready)
+        time.sleep(2)
         self.fake_camera.start_grab()
     
     def routine(self):
+        time.sleep(.2)
         self.fake_camera.trigger()
-        time.sleep(.05)
 
     def on_image_ready(self, ts:int, image:np.ndarray):
+        ts = get_timestamp_ms()
         image_index = self.images_producer.put(image)
         mask_index = self.masks_producer.put(image)
         response = self.ui_rpc_stub.ImageUpdate(ui_pb2.ImageUpdateRequest(
             image_index=image_index,
             mask_index=mask_index,
         ))
-        logger.info(response)
+        logger.info(f'got response{response} took {get_timestamp_ms()-ts}ms')
 
         # element = UIQueueElement(
         #     image_index=image_index,

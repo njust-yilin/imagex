@@ -2,7 +2,6 @@ from PySide6.QtWidgets import QStackedWidget, QWidget, QHBoxLayout
 from threading import RLock
 from loguru import logger
 
-from imagex.pipe_elements import UIQueueElement
 from imagex.ui.components.labels import ImageLabel
 from imagex.ui.ui_thread import UIThread
 from imagex.api.rpc.ui import ui_pb2

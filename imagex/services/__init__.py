@@ -1,1 +1,1 @@
-from imagex.services.service import Service
+from imagex.services.core.service import Service

@@ -7,9 +7,9 @@ from typing import List, Dict
 
 from settings import configs
 from core.utils.license.verification_license import rsa_decrypt, get_hardware_id
-from core.utils.plugins.plugin_loader import get_plugins, PluginConfig
+from core.plugins.plugin_loader import get_plugins, PluginConfig
 from core.utils.import_helper import load_module
-from services.service import Service
+from imagex.services import Service
 
 
 def verify_license():
