@@ -42,15 +42,16 @@ class FakeCamera(AbstractCamera):
         return image
 
     def fake_service(self):
-        # image = np.random.randint(0, 255, (self.height, self.width, 3), dtype=np.uint8)
+        images = np.zeros((10, self.height, self.width, 3), dtype=np.uint8)
+        for i in range(10):
+            images[i] = cv2.putText(images[i], f"Test-{i}", (200, 1000), cv2.FONT_HERSHEY_COMPLEX, 12, (0, 0, 255), 2)
+
         while not self.stop_event.is_set():
             if self.trigger_event.is_set():
                 with self.lock:
                     self.trigger_event.clear()
                     ts = get_timestamp_ms()
-                    image = np.zeros((self.height, self.width, 3), dtype=np.uint8)
-                    image =  cv2.putText(image, f"Test-{randint(0, 100)}", (200, 1000), cv2.FONT_HERSHEY_COMPLEX, 12, (0, 0, 255), 2)
-                    self.image_queue.put((ts, image))
+                    self.image_queue.put((ts, images[randint(0, 9)]))
                     logger.info(f"camera[{self.serial_number}] generate one image")
             else:
                 time.sleep(0.01)

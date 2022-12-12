@@ -2,6 +2,7 @@ import numpy as np
 from multiprocessing import shared_memory, Lock
 from typing import Tuple
 from loguru import logger
+from core.utils import get_timestamp_ms
 
 
 class ImageSharedMemory(object):
@@ -48,20 +49,24 @@ class ImageSharedMemory(object):
         if self.use_count[0] >= self.image_count:
             logger.warning("Image shared memory full")
         
+        ts = get_timestamp_ms()
         current_index =self.index
         with self.lock:
             self.images[self.index] = image.data
             self.index = (self.index + 1) % (self.image_count-1)
             self.use_count[0] += 1
-            logger.info(f"Put image-{self.index}[{self.name}], use count={self.use_count[0]}, next_index={self.index}")
+            logger.info(f"Put image-{self.index}[{self.name}], use count={self.use_count[0]}, next_index={self.index}, took: {get_timestamp_ms()-ts}ms")
         return current_index
 
     def get(self, index:int) -> np.ndarray:
         if index < 0 or index >= self.image_count:
             raise ValueError("Index out of range")
+        
+        ts = get_timestamp_ms()
         with self.lock:
-            logger.info(f"Get image-{self.name}-{index}")
-            return self.images[index]
+            image = self.images[index]
+            logger.info(f"Get image-{self.name}-{index}, took: {get_timestamp_ms()-ts}ms")
+            return image
 
     def init_shared_memory(self, name, size):
         logger.info(f"Initializing shared memory {name}, size={size}")

@@ -1,4 +1,4 @@
-from imagex.utils.plugins.plugin_loader import get_plugins, PluginConfig
+from core.utils.plugins.plugin_loader import get_plugins, PluginConfig
 
 from typing import List
 
