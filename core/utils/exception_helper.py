@@ -2,7 +2,7 @@ from loguru import logger
 
 def run_catch_except(func, args=(), kwargs={}):
     try:
-        func(*args, **kwargs)
+        return func(*args, **kwargs)
     except Exception as e:
         logger.error(e)
 
