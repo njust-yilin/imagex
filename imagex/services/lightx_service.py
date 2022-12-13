@@ -10,7 +10,8 @@ from imagex.services import Service
 from imagex.settings import configs
 from lightx.device.camera.fake_camera import FakeCamera
 from imagex.api.rpc.imagex import imagex_pb2, imagex_pb2_grpc
-from core.utils import get_timestamp_ms, create_rpc_channel, create_rpc_server
+from core.utils import get_timestamp_ms
+from core.utils.grpc_helper import start_grpc_server, create_rpc_stub
 
 
 class LightxService(Service, imagex_pb2_grpc.LightxServicer):
@@ -28,7 +29,7 @@ class LightxService(Service, imagex_pb2_grpc.LightxServicer):
         self.masks_producer = ImageSharedMemory(configs.IMAGEX_MASK_IMAGE_NAME, (2048, 2448, 3), 20)
 
         # start rpc server
-        self.start_rpc_server()
+        self.server = start_grpc_server(self, imagex_pb2_grpc.add_LightxServicer_to_server, configs.LIGHTX_RPC_PORT)
 
         self.fake_camera = FakeCamera('Fake001', 2448, 2048)
         self.fake_camera.add_image_received_callback(self.on_image_ready)
@@ -39,12 +40,6 @@ class LightxService(Service, imagex_pb2_grpc.LightxServicer):
         time.sleep(0.1)
         self.server.stop(0)
         return super().cleanup()
-
-    def start_rpc_server(self):
-        self.server = create_rpc_server(configs.LIGHTX_RPC_PORT)
-        imagex_pb2_grpc.add_LightxServicer_to_server(self, self.server)
-        self.server.start()
-        logger.info(f"{self.name} RPC server started on port {configs.LIGHTX_RPC_PORT}")
     
     def routine(self):
         time.sleep(.2)
