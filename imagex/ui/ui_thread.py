@@ -6,7 +6,7 @@ import time
 
 from imagex.settings import configs
 from imagex.api.rpc.imagex import imagex_pb2
-from core.communication import ImageSharedMemory
+from core.communication import ImageSharedMemoryClient
 
 
 class UIThread(QThread):
@@ -21,14 +21,15 @@ class UIThread(QThread):
 
     def run(self):
         logger.info('UIThread starting...')
-        # TODO: create camera's ImageSharedMemory
-        # self.ui_queue = PipeConsumer(UIQueueElement, configs.UI_QUEUE_NAME)
-        self.images_consumer = ImageSharedMemory(configs.IMAGEX_IMAGE_IMAGE_NAME, (2048, 2448, 3), 20)
-        self.masks_consumer = ImageSharedMemory(configs.IMAGEX_MASK_IMAGE_NAME, (2048, 2448, 3), 20)
         logger.info('UIThread Started')
         while not self.stop_event.is_set():
             time.sleep(1)
         logger.info('UIThread quitted')
+
+    def initialize(self):
+        # TODO: create camera's ImageSharedMemory
+        self.images_consumer = ImageSharedMemoryClient(configs.IMAGEX_IMAGE_IMAGE_NAME, (2048, 2448, 3), 20)
+        self.masks_consumer = ImageSharedMemoryClient(configs.IMAGEX_MASK_IMAGE_NAME, (2048, 2448, 3), 20)
 
     def image_ready(self, request:imagex_pb2.UpdateImageRequest):
         self.on_image_received.emit(request)

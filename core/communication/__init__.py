@@ -1,2 +1,2 @@
 from core.communication.pipe.pipe import PipeConsumer, PipeProducer
-from core.communication.share_memory.image_shared_memory import ImageSharedMemory
+from core.communication.share_memory.image_shared_memory import ImageSharedMemoryClient, ImageSharedMemoryManager

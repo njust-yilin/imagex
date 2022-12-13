@@ -8,8 +8,7 @@ from imagex.settings import configs
 from imagex.ui.main_window import MainWindow
 from imagex.api.rpc.imagex import imagex_pb2_grpc, imagex_pb2
 from imagex.ui.ui_thread import UIThread
-from core.utils.grpc_helper import start_grpc_server
-from core.utils import grpc_helper
+from core.utils.grpc_helper import start_grpc_server, create_rpc_stub
 
 
 class UIService(Service, imagex_pb2_grpc.UIServicer):
@@ -36,9 +35,8 @@ class UIService(Service, imagex_pb2_grpc.UIServicer):
     
     def exit(self):
         logger.info("Notify Imagex Service stopped")
-        grpc_helper.get_imagex_stub().Exit(imagex_pb2.Empty())
-        # self.server.stop(0)
-        return super().exit()
+        imagex_stub: imagex_pb2_grpc.ImagexStub = create_rpc_stub(imagex_pb2_grpc.ImagexStub, configs.IMAGEX_RPC_PORT)
+        imagex_stub.Exit(imagex_pb2.Empty())
 
     # ===============================RPC API =============================
     def Ping(self, request, context):
@@ -49,10 +47,11 @@ class UIService(Service, imagex_pb2_grpc.UIServicer):
         return imagex_pb2.SuccessReply(ok=True)
 
     def Exit(self, request, context):
-        self.server.stop()
+        self.server.stop(0)
         return imagex_pb2.Empty()
 
     def Initialize(self, request, context):
+        self.ui_thread.initialize()
         return imagex_pb2.SuccessReply(ok=True)
 
 

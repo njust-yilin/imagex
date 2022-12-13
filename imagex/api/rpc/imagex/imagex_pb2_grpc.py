@@ -30,21 +30,6 @@ class ImagexStub(object):
                 request_serializer=imagex__pb2.Empty.SerializeToString,
                 response_deserializer=imagex__pb2.Empty.FromString,
                 )
-        self.DeepxReady = channel.unary_unary(
-                '/Imagex/DeepxReady',
-                request_serializer=imagex__pb2.Empty.SerializeToString,
-                response_deserializer=imagex__pb2.SuccessReply.FromString,
-                )
-        self.UIReady = channel.unary_unary(
-                '/Imagex/UIReady',
-                request_serializer=imagex__pb2.Empty.SerializeToString,
-                response_deserializer=imagex__pb2.SuccessReply.FromString,
-                )
-        self.LightxReady = channel.unary_unary(
-                '/Imagex/LightxReady',
-                request_serializer=imagex__pb2.Empty.SerializeToString,
-                response_deserializer=imagex__pb2.SuccessReply.FromString,
-                )
 
 
 class ImagexServicer(object):
@@ -69,25 +54,6 @@ class ImagexServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def DeepxReady(self, request, context):
-        """Ready rpc
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def UIReady(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def LightxReady(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
 
 def add_ImagexServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -105,21 +71,6 @@ def add_ImagexServicer_to_server(servicer, server):
                     servicer.Exit,
                     request_deserializer=imagex__pb2.Empty.FromString,
                     response_serializer=imagex__pb2.Empty.SerializeToString,
-            ),
-            'DeepxReady': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeepxReady,
-                    request_deserializer=imagex__pb2.Empty.FromString,
-                    response_serializer=imagex__pb2.SuccessReply.SerializeToString,
-            ),
-            'UIReady': grpc.unary_unary_rpc_method_handler(
-                    servicer.UIReady,
-                    request_deserializer=imagex__pb2.Empty.FromString,
-                    response_serializer=imagex__pb2.SuccessReply.SerializeToString,
-            ),
-            'LightxReady': grpc.unary_unary_rpc_method_handler(
-                    servicer.LightxReady,
-                    request_deserializer=imagex__pb2.Empty.FromString,
-                    response_serializer=imagex__pb2.SuccessReply.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -180,57 +131,6 @@ class Imagex(object):
         return grpc.experimental.unary_unary(request, target, '/Imagex/Exit',
             imagex__pb2.Empty.SerializeToString,
             imagex__pb2.Empty.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def DeepxReady(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Imagex/DeepxReady',
-            imagex__pb2.Empty.SerializeToString,
-            imagex__pb2.SuccessReply.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def UIReady(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Imagex/UIReady',
-            imagex__pb2.Empty.SerializeToString,
-            imagex__pb2.SuccessReply.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def LightxReady(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Imagex/LightxReady',
-            imagex__pb2.Empty.SerializeToString,
-            imagex__pb2.SuccessReply.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
