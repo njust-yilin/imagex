@@ -34,6 +34,8 @@ class LightxService(Service, imagex_pb2_grpc.LightxServicer):
     
     def cleanup(self):
         self.server.stop(0)
+        self.fake_camera.stop_grab()
+        del self.fake_camera
         return super().cleanup()
     
     def routine(self):

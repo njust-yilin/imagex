@@ -28,6 +28,9 @@ class FakeCamera(AbstractCamera):
         Thread(target=self.async_process_images).start()
         Thread(target=self.fake_service).start()
 
+    def __del__(self):
+        self.stop_grab()
+
 
     def stop_grab(self):
         logger.info(f"camera[{self.serial_number}] stop grabbing")
@@ -55,20 +58,4 @@ class FakeCamera(AbstractCamera):
                     logger.info(f"camera[{self.serial_number}] generate one image")
             else:
                 time.sleep(0.01)
-
-
-if __name__ == '__main__':
-    import cv2
-    def callback(ts, image):
-        logger.info(f"received image {ts}")
-        cv2.imwrite('test.jpg', image)  
-
-    camera = FakeCamera(serial_number='Fake0001', image_width=640, image_height=480)
-    camera.initialize()
-    camera.add_image_received_callback(callback)
-    camera.start_grab()
-    for i in range(10):
-        camera.trigger()
-        time.sleep(0.5)
-    time.sleep(1)
-    camera.stop_grab()
+        logger.info(f"camera[{self.serial_number}] Stopped")

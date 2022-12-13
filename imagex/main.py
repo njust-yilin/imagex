@@ -47,10 +47,19 @@ def main():
     for plugin_config in plugins:
         module = load_module(plugin_config.module)
         service:Service = module.get_service()
+        service.daemon = True
         service.start()
         process_map[plugin_config.name] = service
 
-    logger.info("Exiting Application")
+    while True:
+        time.sleep(1)
+        alive_list = [service.is_alive() for service in process_map.values()]
+        logger.info(alive_list)
+        if alive_list.count(False) == len(process_map):
+            break
+    
+    sys.exit(0)
+    # logger.info("Exiting Application")
 
 
 if __name__ == "__main__":

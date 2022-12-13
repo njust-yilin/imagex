@@ -66,6 +66,7 @@ class AbstractCamera(metaclass=ABCMeta):
                 self.execute_callback(ts=ts, image=image)
             else:
                 time.sleep(0.001)
+        logger.info(f"quitted image queue async_process_images")
 
     def execute_callback(self, **kwargs):
         if self.callback:

@@ -1,5 +1,5 @@
 from loguru import logger
-import time
+import time, sys
 
 from imagex.services import Service
 from imagex.settings import configs
@@ -40,10 +40,11 @@ class ImagexService(Service, imagex_pb2_grpc.ImagexServicer):
         except:pass
 
         # TODO: stop when all rpc termination
-        time.sleep(2)
+        time.sleep(1)
         del self.masks_manager
         del self.images_manager
         self.server.stop(0)
+        sys.exit(0)
         super().cleanup()
     
     # ======================RPC API =================

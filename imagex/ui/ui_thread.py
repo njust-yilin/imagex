@@ -1,5 +1,5 @@
 from loguru import logger
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QThread, Signal, QCoreApplication
 from threading import Event
 from typing import List
 import time
@@ -23,6 +23,7 @@ class UIThread(QThread):
         logger.info('UIThread starting...')
         logger.info('UIThread Started')
         while not self.stop_event.is_set():
+            logger.info('UIThread routine...')
             time.sleep(1)
         logger.info('UIThread quitted')
 
@@ -39,3 +40,4 @@ class UIThread(QThread):
         self.wait()
         logger.info("Emit exit ui signal")
         self.exit_ui.emit()
+        QCoreApplication.quit()
