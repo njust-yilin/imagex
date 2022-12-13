@@ -31,7 +31,13 @@ class UIService(Service, imagex_pb2_grpc.UIServicer):
 
         logger.info(f"Started {self.name}")
         app.exec()
+        while not self._stop_event.is_set():
+            time.sleep(0.1)
+        self.cleanup()
         del app
+
+    def cleanup(self):
+        self.server.stop(0)
     
     def exit(self):
         logger.info("Notify Imagex Service stopped")
@@ -47,7 +53,7 @@ class UIService(Service, imagex_pb2_grpc.UIServicer):
         return imagex_pb2.SuccessReply(ok=True)
 
     def Exit(self, request, context):
-        self.server.stop(0)
+        self._stop_event.set()
         return imagex_pb2.Empty()
 
     def Initialize(self, request, context):
