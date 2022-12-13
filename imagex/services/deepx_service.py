@@ -18,7 +18,11 @@ class DeepxService(Service, imagex_pb2_grpc.DeepxServicer):
         return super().setup()
     
     def cleanup(self):
-        time.sleep(0.1)
+        logger.info('Cleanup Deepx shared memory')
+        if self.images_client:
+            del self.images_client
+        if self.masks_client:
+            del self.masks_client
         self.server.stop(0)
         return super().cleanup()
     
@@ -35,8 +39,9 @@ class DeepxService(Service, imagex_pb2_grpc.DeepxServicer):
     
     def Initialize(self, request, context):
         # TODO: create camera's ImageSharedMemory
-        self.images_manager = ImageSharedMemoryClient(configs.IMAGEX_IMAGE_IMAGE_NAME, (2048, 2448, 3), 20)
-        self.masks_manager = ImageSharedMemoryClient(configs.IMAGEX_MASK_IMAGE_NAME, (2048, 2448, 3), 20)
+        logger.info('Initializing Deepx shared memory')
+        self.images_client = ImageSharedMemoryClient(configs.IMAGEX_IMAGE_IMAGE_NAME, (2048, 2448, 3), 20)
+        self.masks_client = ImageSharedMemoryClient(configs.IMAGEX_MASK_IMAGE_NAME, (2048, 2448, 3), 20)
         return imagex_pb2.SuccessReply(ok=True)
 
 

@@ -1,10 +1,10 @@
 import numpy as np
-from multiprocessing import shared_memory, Lock
+from multiprocessing import shared_memory, Lock, resource_tracker
 from typing import Tuple
 from loguru import logger
 from abc import ABCMeta, abstractmethod
 
-from core.utils import get_timestamp_ms
+from core.utils import get_timestamp_ms, run_catch_except
 
 
 class ImageSharedMemory(metaclass=ABCMeta):
@@ -38,7 +38,10 @@ class ImageSharedMemory(metaclass=ABCMeta):
             return sm
         except FileExistsError as e:
             logger.warning(e)
+            sm = shared_memory.SharedMemory(name=name, size=size, create=False)
             return sm
+        finally:
+            resource_tracker.unregister(sm._name, 'shared_memory')
 
     def put(self, image:np.ndarray)->int:
         if self.use_count[0] >= self.image_count:
@@ -84,9 +87,13 @@ class ImageSharedMemory(metaclass=ABCMeta):
             self.use_count[0] = 0
 
     def __del__(self):
-        self.images_shared_memory.close()
-        self.use_count_shared_memory.close()
+        del self.images
+        del  self.use_count
+        run_catch_except(self.images_shared_memory.close)
         logger.info(f"Closed images shared memory {self.name}")
+
+        run_catch_except(self.use_count_shared_memory.close)
+        logger.info(f"Closed use count shared memory {self.name}")
 
     @abstractmethod
     def is_manager(self)->bool:
@@ -100,14 +107,13 @@ class ImageSharedMemoryManager(ImageSharedMemory):
 
     def __del__(self):
         super().__del__()
-        try:
-            self.images_shared_memory.unlink()
-            logger.info(f"Unlinked images shared memory {self.name}")
-        except: pass
-        try:
-            self.use_count_shared_memory.unlink()
-            logger.info(f"Unlinked use count shared memory {self.name}")
-        except: pass
+        run_catch_except(resource_tracker.register, args=(self.images_shared_memory._name, 'shared_memory'))
+        run_catch_except(resource_tracker.register, args=(self.use_count_shared_memory._name, 'shared_memory'))
+        run_catch_except(self.images_shared_memory.unlink)
+        logger.info(f"Unlinked images shared memory {self.name}")
+
+        run_catch_except(self.use_count_shared_memory.unlink)
+        logger.info(f"Unlinked use count shared memory {self.name}")
 
     def is_manager(self) -> bool:
         return True

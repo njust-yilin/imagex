@@ -35,7 +35,14 @@ class LightxService(Service, imagex_pb2_grpc.LightxServicer):
     def cleanup(self):
         self.server.stop(0)
         self.fake_camera.stop_grab()
-        del self.fake_camera
+        if self.fake_camera:
+            del self.fake_camera
+        
+        logger.info('Cleanup Lightx shared memory')
+        if self.images_client:
+            del self.images_client
+        if self.masks_client:
+            del self.masks_client
         return super().cleanup()
     
     def routine(self):
@@ -62,6 +69,7 @@ class LightxService(Service, imagex_pb2_grpc.LightxServicer):
 
     def Initialize(self, request, context):
         # TODO: create camera's ImageSharedMemory
+        logger.info('Initializing Lightx shared memory')
         self.images_client = ImageSharedMemoryClient(configs.IMAGEX_IMAGE_IMAGE_NAME, (2048, 2448, 3), 20)
         self.masks_client = ImageSharedMemoryClient(configs.IMAGEX_MASK_IMAGE_NAME, (2048, 2448, 3), 20)
         return imagex_pb2.SuccessReply()

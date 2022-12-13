@@ -29,8 +29,9 @@ class UIThread(QThread):
 
     def initialize(self):
         # TODO: create camera's ImageSharedMemory
-        self.images_consumer = ImageSharedMemoryClient(configs.IMAGEX_IMAGE_IMAGE_NAME, (2048, 2448, 3), 20)
-        self.masks_consumer = ImageSharedMemoryClient(configs.IMAGEX_MASK_IMAGE_NAME, (2048, 2448, 3), 20)
+        logger.info('Initializing UI Thread shared memory')
+        self.images_client = ImageSharedMemoryClient(configs.IMAGEX_IMAGE_IMAGE_NAME, (2048, 2448, 3), 20)
+        self.masks_client = ImageSharedMemoryClient(configs.IMAGEX_MASK_IMAGE_NAME, (2048, 2448, 3), 20)
 
     def image_ready(self, request:imagex_pb2.UpdateImageRequest):
         self.on_image_received.emit(request)
@@ -41,3 +42,8 @@ class UIThread(QThread):
         logger.info("Emit exit ui signal")
         self.exit_ui.emit()
         QCoreApplication.quit()
+        logger.info('Cleanup UI Thread shared memory')
+        if self.images_client:
+            del self.images_client
+        if self.masks_client:
+            del self.masks_client
