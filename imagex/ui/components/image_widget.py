@@ -24,5 +24,5 @@ class ImageWidget(QStackedWidget):
     def update_image(self, request:imagex_pb2.UpdateImageRequest):
         with self.lock:
             logger.info(f"updating image {request.image_index}")
-            image = self.ui_thread.images_comsumer.get(request.image_index)
+            image = self.ui_thread.images_client.get(request.image_index)
             self.image_label.set_image(image, request.ok)

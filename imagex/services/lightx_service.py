@@ -29,8 +29,6 @@ class LightxService(Service, imagex_pb2_grpc.LightxServicer):
 
         self.fake_camera = FakeCamera('Fake001', 2448, 2048)
         self.fake_camera.add_image_received_callback(self.on_image_ready)
-        time.sleep(2)
-        self.fake_camera.start_grab()
     
     def cleanup(self):
         self.server.stop(0)
@@ -47,7 +45,7 @@ class LightxService(Service, imagex_pb2_grpc.LightxServicer):
     
     def routine(self):
         time.sleep(.2)
-        # self.fake_camera.trigger()
+        self.fake_camera.trigger()
 
     def on_image_ready(self, ts:int, image:np.ndarray):
         ts = get_timestamp_ms()
@@ -72,6 +70,7 @@ class LightxService(Service, imagex_pb2_grpc.LightxServicer):
         logger.info('Initializing Lightx shared memory')
         self.images_client = ImageSharedMemoryClient(configs.IMAGEX_IMAGE_IMAGE_NAME, (2048, 2448, 3), 20)
         self.masks_client = ImageSharedMemoryClient(configs.IMAGEX_MASK_IMAGE_NAME, (2048, 2448, 3), 20)
+        self.fake_camera.start_grab()
         return imagex_pb2.SuccessReply()
 
 
