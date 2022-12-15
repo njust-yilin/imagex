@@ -5,7 +5,7 @@ from typing import List
 import time
 
 from imagex.settings import configs
-from imagex.api.rpc.imagex import imagex_pb2
+from imagex.api.rpc import imagex_pb2
 from core.communication import ImageSharedMemoryClient
 
 

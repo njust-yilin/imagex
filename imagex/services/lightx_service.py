@@ -8,7 +8,7 @@ import time
 from imagex.services import Service
 from imagex.settings import configs
 from lightx.device.camera.fake_camera import FakeCamera
-from imagex.api.rpc.imagex import imagex_pb2, imagex_pb2_grpc
+from imagex.api.rpc import imagex_pb2, imagex_pb2_grpc
 from core.utils import get_timestamp_ms
 from core.utils.grpc_helper import start_grpc_server, create_rpc_stub
 from core.communication import ImageSharedMemoryClient

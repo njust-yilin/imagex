@@ -4,7 +4,7 @@ from loguru import logger
 
 from imagex.ui.components.labels import ImageLabel
 from imagex.ui.ui_thread import UIThread
-from imagex.api.rpc.imagex import imagex_pb2
+from imagex.api.rpc import imagex_pb2
 
 class ImageWidget(QStackedWidget):
     def __init__(self, parent, ui_thread:UIThread) -> None:
