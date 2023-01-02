@@ -1,181 +1,106 @@
 import cv2
 import numpy as np
 from PIL import Image, ImageEnhance
-from scipy.ndimage import distance_transform_edt
-
-
-def rescale_size(img_size, target_size):
-    scale = min(
-        max(target_size) / max(img_size), min(target_size) / min(img_size))
-    rescaled_size = [round(i * scale) for i in img_size]
-    return rescaled_size, scale
+import math
 
 
 def normalize(im, mean, std):
+    """标准差归一化"""
     im = im.astype(np.float32, copy=False) / 255.0
     im -= mean
     im /= std
     return im
 
 
-def resize(im, target_size=608, interp=cv2.INTER_LINEAR):
-    if isinstance(target_size, list) or isinstance(target_size, tuple):
-        w = target_size[0]
-        h = target_size[1]
+def rescale_size(img_size, target_size, size_divisor=None):
+    """保持长宽比缩放"""
+    scale = max(target_size) / max(img_size), min(target_size) / max(img_size)
+    scale = min(scale)
+    rescaled_size = [round(i * scale) for i in img_size]
+
+    if size_divisor:
+        rescaled_size = [
+            math.ceil(i / size_divisor) * size_divisor
+            for i in rescaled_size
+        ]
+    return rescaled_size, scale
+
+
+def resize(im:np.ndarray, targer_size=608, interp=cv2.INTER_LINEAR):
+    """修改尺寸"""
+    if isinstance(targer_size, list) or isinstance(targer_size, tuple):
+        w, h = targer_size[0], targer_size[1]
     else:
-        w = target_size
-        h = target_size
+        w, h = targer_size, targer_size
     im = cv2.resize(im, (w, h), interpolation=interp)
     return im
 
 
-def resize_long(im, long_size=224, interp=cv2.INTER_LINEAR):
-    h = im.shape[0]
-    w = im.shape[1]
-    value = max(w, h)
-    scale = float(long_size) / float(value)
-    resized_width = int(round(w*scale))
-    resized_height = int(round(h*scale))
-    im = cv2.resize(im, (resized_width, resized_height), interpolation=interp)
-    return im
+def resize_long(im:np.ndarray, long_size=224, interp=cv2.INTER_LINEAR):
+    """修改尺寸"""
+    scale = float(long_size) / max(im.shape[0], im.shape[1])
+    h, w = [int(round(i * scale)) for i in im.shape[:2]]
+    return cv2.resize(im, (w, h), interpolation=interp)
 
 
-def resize_short(im, short_size=224, interp=cv2.INTER_LINEAR):
-    h = im.shape[0]
-    w = im.shape[1]
-    value = min(w, h)
-    scale = float(short_size) / float(value)
-    resized_width = int(round(w*scale))
-    resized_height = int(round(h*scale))
-    im = cv2.resize(im, (resized_width, resized_height), interpolation=interp)
-    return im
+def resize_short(im:np.ndarray, short_size=224, interp=cv2.INTER_LINEAR):
+    """修改尺寸"""
+    scale = float(short_size) / min(im.shape[0], im.shape[1])
+    h, w = [int(round(i * scale)) for i in im.shape[:2]]
+    return cv2.resize(im, (w, h), interpolation=interp)
 
 
-def horizontal_flip(im):
-    if len(im.shape) == 3:
+def vertical_flip(im:np.ndarray):
+    """垂直翻转"""
+    if im.ndim == 3:
         im = im[:, ::-1, :]
-    elif len(im.shape) == 2:
+    elif im.ndim == 2:
         im = im[:, ::-1]
     return im
 
-
-def vertical_flip(im):
-    if len(im.shape) == 3:
+def horizontal_flip(im:np.ndarray):
+    """水平翻转"""
+    if im.ndim == 3:
         im = im[::-1, :, :]
-    elif len(im.shape) == 2:
+    elif im.ndim == 2:
         im = im[::-1, :]
     return im
 
-def contrast(im, contrast_lower, contrast_upper):
-    contrast_delta = np.random.uniform(contrast_lower, contrast_upper)
-    im = ImageEnhance.Contrast(im).enhance(contrast_delta)
-    return im
 
-def brightness(im, brightness_lower, brightness_upper):
-    brightness_delta = np.random.uniform(brightness_lower, brightness_upper)
-    im = ImageEnhance.Brightness(im).enhance(brightness_delta)
+def brightness(im, low, high):
+    """随机亮度变化"""
+    delta = np.random.uniform(low, high)
+    im = ImageEnhance.Brightness(im).enhance(delta)
     return im
 
 
-def saturation(im, saturation_lower, saturation_upper):
-    saturation_delta = np.random.uniform(saturation_lower, saturation_upper)
-    im = ImageEnhance.Color(im).enhance(saturation_delta)
-    return im
+def contrast(im, low, high):
+    """随即对比度变化"""
+    delta = np.random.uniform(low, high)
+    return ImageEnhance.Contrast(im).enhance(delta)
 
 
-def hue(im, hue_lower, hue_upper):
-    hue_delta = np.random.uniform(hue_lower, hue_upper)
+def saturation(im, low, high):
+    """随机饱和度变换"""
+    delta = np.random.uniform(low, high)
+    return ImageEnhance.Color(im).enhance(delta)
+
+
+def hue(im, low, high):
+    """随机色彩变换"""
+    delta = np.random.uniform(low, high)
     im = np.array(im.convert('HSV'))
-    im[:, :, 0] = im[:, :, 0] + hue_delta
-    im = Image.fromarray(im, mode='HSV').convert('RGB')
-    return im
+    im[:, :, 0] = im[:, :, 0] + delta
+    return Image.fromarray(im, mode='HSV').convert('RGB')
 
 
-def sharpness(im, sharpness_lower, sharpness_upper):
-    sharpness_delta = np.random.uniform(sharpness_lower, sharpness_upper)
-    im = ImageEnhance.Sharpness(im).enhance(sharpness_delta)
-    return im
+def sharpness(im, low, high):
+    """随机锐度变换"""
+    delta = np.random.uniform(low, high)
+    return ImageEnhance.Sharpness(im).enhance(delta)
 
 
-def rotate(im, rotate_lower, rotate_upper):
-    rotate_delta = np.random.uniform(rotate_lower, rotate_upper)
-    im = im.rotate(rotate_delta)
-    return im
-
-
-def mask_to_onehot(mask, num_classes):
-    """
-    Convert a mask (H, W) to onehot (K, H, W).
-
-    Args:
-        mask (np.ndarray): Label mask with shape (H, W)
-        num_classes (int): Number of classes.
-
-    Returns:
-        np.ndarray: Onehot mask with shape(K, H, W).
-    """
-    _mask = [mask == i for i in range(num_classes)]
-    _mask = np.array(_mask).astype(np.uint8)
-    return _mask
-
-
-def onehot_to_binary_edge(mask, radius):
-    """
-    Convert a onehot mask (K, H, W) to a edge mask.
-
-    Args:
-        mask (np.ndarray): Onehot mask with shape (K, H, W)
-        radius (int|float): Radius of edge.
-
-    Returns:
-        np.ndarray: Edge mask with shape(H, W).
-    """
-    if radius < 1:
-        raise ValueError('`radius` should be greater than or equal to 1')
-    num_classes = mask.shape[0]
-
-    edge = np.zeros(mask.shape[1:])
-    # pad borders
-    mask = np.pad(mask, ((0, 0), (1, 1), (1, 1)),
-                  mode='constant',
-                  constant_values=0)
-    for i in range(num_classes):
-        dist = distance_transform_edt(mask[i, :]) + distance_transform_edt(
-            1.0 - mask[i, :])
-        dist = dist[1:-1, 1:-1]
-        dist[dist > radius] = 0
-        edge += dist
-
-    edge = np.expand_dims(edge, axis=0)
-    edge = (edge > 0).astype(np.uint8)
-    return edge
-
-
-def mask_to_binary_edge(mask, radius, num_classes):
-    """
-    Convert a segmentic segmentation mask (H, W) to a binary edge mask(H, W).
-
-    Args:
-        mask (np.ndarray): Label mask with shape (H, W)
-        radius (int|float): Radius of edge.
-        num_classes (int): Number of classes.
-
-    Returns:
-        np.ndarray: Edge mask with shape(H, W).
-    """
-    mask = mask.squeeze()
-    onehot = mask_to_onehot(mask, num_classes)
-    edge = onehot_to_binary_edge(onehot, radius)
-    return edge
-
-
-if __name__ == '__main__':
-    from deepx.transforms import Compose
-    image_file = '/home/imagex/Desktop/yilin/imagex/notbook/H0002.jpg'
-    mask_file = '/home/imagex/Desktop/yilin/imagex/notbook/H0002.png'
-    im = cv2.imread(mask_file)
-    print(im.shape)
-    im = mask_to_binary_edge(im[:,:,0], 2, 2)
-    print(im.shape)
-    print(im)
-    cv2.imwrite('mask_to_binary_edge.png', im[0])
+def rotate(im, low, high):
+    """随机旋转变换"""
+    delta = np.random.uniform(low, high)
+    return im.rotate(int(delta))
