@@ -1,0 +1,1 @@
+from .image import is_image

@@ -10,17 +10,22 @@ class Service(Process):
         self._stop_event = Event()
 
     def setup(self):
-        pass
+        logger.info(f"Setup service: {self.name}")
 
     def routine(self):
-        pass
+        logger.info(f"routine service: {self.name}")
+        time.sleep(1)
+
+    def cleanup(self):
+        logger.info(f"Cleanup service: {self.name}")
 
     def exit(self):
+        logger.info(f"Exit service: {self.name}")
         self._stop_event.set()
 
     def run(self):
         self.setup()
-        logger.info(f"Starting service[{self.name}]")
+        logger.info(f"Service started[{self.name}]")
         while not self._stop_event.is_set():
             try:
                 self.routine()
@@ -29,4 +34,5 @@ class Service(Process):
                 break
             except Exception as e:
                 logger.error(e)
-            time.sleep(1)
+                time.sleep(1)
+        self.cleanup()

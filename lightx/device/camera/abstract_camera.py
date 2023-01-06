@@ -3,6 +3,7 @@ import numpy as np
 from threading import RLock, Event
 from queue import Queue
 import time
+from loguru import logger
 
 
 class AbstractCamera(metaclass=ABCMeta):
@@ -62,10 +63,17 @@ class AbstractCamera(metaclass=ABCMeta):
             if not self.image_queue.empty():
                 ts, image = self.image_queue.get()
                 image = self.image_convert(image)
-                if self.callback:
-                    self.callback(ts, image)
+                self.execute_callback(ts=ts, image=image)
             else:
                 time.sleep(0.001)
+        logger.info(f"quitted image queue async_process_images")
+
+    def execute_callback(self, **kwargs):
+        if self.callback:
+            try:
+                self.callback(**kwargs)
+            except Exception as e:
+                logger.error(e)
 
     def add_image_received_callback(self, callback):
         self.callback = callback
