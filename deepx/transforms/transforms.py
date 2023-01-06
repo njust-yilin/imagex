@@ -12,7 +12,7 @@ KEY_FIELDS = 'trans_fields'
 
 
 class Compose:
-    def __init__(self, transforms):
+    def __init__(self, *transforms):
         self.transforms = transforms
 
     def __call__(self, data:dict):

@@ -6,59 +6,61 @@ from typing import Tuple, List
 from PIL import Image
 import numpy as np
 
+from deepx.transforms import KEY_FIELDS
 from deepx.utils import is_image
 
 
 class SegDataset(Dataset):
     def __init__(self, root, mode='train', transforms=None):
-        if transforms is None:
-            self.transforms = torchvision.transforms.Compose([
-                torchvision.transforms.ToTensor()
-            ])
-        elif isinstance(transforms, List) or isinstance(transforms, List):
-            self.transforms = torchvision.transforms.Compose(transforms)
-        else:
-            self.transforms = transforms
+        self.transforms = transforms
+        self.mode = mode
 
         root = Path(root) / mode
         if not root.is_dir():
             raise ValueError(f'{root} is not a directory')
         
-        self.image_files = []
-        self.mask_files = []
+        self.file_list = []
 
         images_path = root / 'images'
         masks_path = root / 'masks'
         for file in os.listdir(images_path):
-            if is_image(file):
-                self.image_files.append((images_path / file).as_posix())
-        
-        for file in os.listdir(masks_path):
-            if is_image(file):
-                self.mask_files.append((masks_path / file).as_posix())
+            mask_path = masks_path / file
+            image_path = images_path / file
+            if is_image(file) and mask_path.is_file():
+                self.file_list.append((image_path.as_posix(), mask_path.as_posix()))
         
     def __len__(self):
-        return len(self.image_files)
+        return len(self.file_list)
 
     def __getitem__(self, index):
-        image = Image.open(self.image_files[index]).convert('RGB')
-        label = Image.open(self.mask_files[index])
-
-        image = self.transforms(image)
-        label = self.transforms(label)
-
-        return image, label
+        data = {}
+        data['img'], data['label'] = self.file_list[index]
+        data[KEY_FIELDS] = []
+        if self.mode == 'valid':
+            data = self.transforms(data)
+            data['label'] = data['label'][None, :, :] # To CHW
+        else:
+            data[KEY_FIELDS].append('label')
+            data = self.transforms(data)
+        return data
 
 
 if __name__ == '__main__':
     import numpy as np
     from torch.utils.data import DataLoader
-    from torchvision import transforms
+    from deepx import transforms
     root = Path.home() / 'imagex_data/networks/optic_disc_seg'
-    dataset = SegDataset(root)
-    data_loader = DataLoader(dataset=dataset, batch_size=1)
+    dataset = SegDataset(root, transforms=transforms.Compose(
+        transforms.Resize((512, 512)),
+        transforms.Normallize()
+    ))
+    data = dataset[0]
+    image, label = data['img'], data['label']
+    print(label.shape)
+    print(image.shape)
+    data_loader = DataLoader(dataset=dataset, batch_size=2)
     for data in data_loader:
-        image, label = data
+        image, label = data['img'], data['label']
         print(label.shape)
         print(image.shape)
         break
