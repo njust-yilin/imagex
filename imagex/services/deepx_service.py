@@ -3,7 +3,7 @@ import time
 
 from imagex.services import Service
 from imagex.settings import configs
-from imagex.api.rpc.imagex import imagex_pb2_grpc, imagex_pb2
+from imagex.api.rpc import imagex_pb2_grpc, imagex_pb2
 from core.utils.grpc_helper import start_grpc_server
 from core.communication import ImageSharedMemoryClient
 

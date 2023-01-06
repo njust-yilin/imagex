@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import imagex.api.rpc.imagex.imagex_pb2 as imagex__pb2
+import imagex.api.rpc.imagex_pb2 as imagex__pb2
 
 
 class ImagexStub(object):
