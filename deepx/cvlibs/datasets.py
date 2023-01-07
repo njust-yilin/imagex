@@ -1,18 +1,14 @@
-from torch.utils.data import Dataset
-import torchvision.transforms
 from pathlib import Path
 import os
-from typing import Tuple, List
-from PIL import Image
-import numpy as np
+import paddle
 
-from deepx.transforms import KEY_FIELDS
+from deepx.transforms import KEY_FIELDS, Compose
 from deepx.utils import is_image
 
 
-class SegDataset(Dataset):
-    def __init__(self, root, mode='train', transforms=None):
-        self.transforms = transforms
+class SegDataset(paddle.io.Dataset):
+    def __init__(self, root, mode='train', transforms=[]):
+        self.transforms = Compose(transforms)
         self.mode = mode
 
         root = Path(root) / mode
@@ -34,33 +30,26 @@ class SegDataset(Dataset):
 
     def __getitem__(self, index):
         data = {}
+        data['trans_info'] = []
         data['img'], data['label'] = self.file_list[index]
-        data[KEY_FIELDS] = []
-        if self.mode == 'valid':
-            data = self.transforms(data)
-            data['label'] = data['label'][None, :, :] # To CHW
-        else:
-            data[KEY_FIELDS].append('label')
-            data = self.transforms(data)
+
+        data[KEY_FIELDS] = ['label']
+        data = self.transforms(data)
+        
         return data
 
 
 if __name__ == '__main__':
-    import numpy as np
-    from torch.utils.data import DataLoader
     from deepx import transforms
+    from paddle.io import DataLoader
     root = Path.home() / 'imagex_data/networks/optic_disc_seg'
-    dataset = SegDataset(root, transforms=transforms.Compose(
-        transforms.Resize((512, 512)),
-        transforms.Normallize()
-    ))
-    data = dataset[0]
-    image, label = data['img'], data['label']
-    print(label.shape)
-    print(image.shape)
-    data_loader = DataLoader(dataset=dataset, batch_size=2)
+    dataset = SegDataset(root, transforms=[
+        transforms.Resize((512, 512)),],
+        mode='valid'
+    )
+
+    data_loader =  DataLoader(dataset=dataset, batch_size=2)
     for data in data_loader:
         image, label = data['img'], data['label']
         print(label.shape)
         print(image.shape)
-        break

@@ -12,13 +12,13 @@ KEY_FIELDS = 'trans_fields'
 
 
 class Compose:
-    def __init__(self, *transforms):
+    def __init__(self, transforms):
         self.transforms = transforms
 
     def __call__(self, data:dict):
         assert 'img' in data
 
-        data['img'] = cv2.imread(data['img'])
+        data['img'] = cv2.imread(data['img']).astype('float32')
         assert isinstance(data['img'], np.ndarray)
         if data['img'].ndim == 3:
             # BGR to RGB
@@ -34,10 +34,9 @@ class Compose:
 
         if data['img'].ndim == 2:
             # HW To CHW
-            data['img'] = data['img'][None, :, :]
-        else:
-            # HWC to CHW
-            data['img'] = np.transpose(data['img'], (2, 0, 1))
+            data['img'] = data['img'][..., np.newaxis]
+        # HWC to CHW
+        data['img'] = np.transpose(data['img'], (2, 0, 1))
         return data
 
 
@@ -78,23 +77,29 @@ class Resize:
         'LANCZOS4': cv2.INTER_LANCZOS4
     }
     def __init__(self, target_size=(512, 512), size_divisor=None, interp='LINEAR') -> None:
-        self.target_size = target_size
+        if isinstance(target_size, (tuple, list)):
+            self.target_size = target_size
+        else:
+            self.target_size = (target_size, target_size)
         self.size_divisor = size_divisor
         self.interp = interp
     
     def __call__(self, data:dict) -> dict:
         data['trans_info'].append(('resize', data['img'].shape[0:2]))
+        h, w = data['img'].shape[:2]
+        if self.target_size == (h, w):
+            return data
+
         if self.interp == "RANDOM":
             interp = random.choice(list(self.interp_dict.values()))
         else:
             interp = self.interp_dict[self.interp]
         
-        h, w = data['img'].shape[:2]
-        target_size, _ = F.rescale_size((w, h), self.target_size, self.size_divisor)
-        
-        data['img'] = F.resize(data['img'], target_size, interp)
+        data['img'] = F.resize(data['img'], self.target_size, interp)
         for key in data.get(KEY_FIELDS, []):
-            data[key] = F.resize(data[key], target_size, interp)
+            data[key] = F.resize(data[key], self.target_size, cv2.INTER_NEAREST)
+            image, label = data['img'], data['label']
+        
         return data
     
 
