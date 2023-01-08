@@ -1,11 +1,14 @@
 from pathlib import Path
 import os
 import paddle
+import numpy as np
 
 from deepx.transforms import KEY_FIELDS, Compose
 from deepx.utils import is_image
+from deepx.cvlibs import manager
 
 
+@manager.DATASETS.add_component
 class SegDataset(paddle.io.Dataset):
     def __init__(self, root, mode='train', transforms=[]):
         self.transforms = Compose(transforms)
@@ -33,8 +36,13 @@ class SegDataset(paddle.io.Dataset):
         data['trans_info'] = []
         data['img'], data['label'] = self.file_list[index]
 
+        data[KEY_FIELDS] = []
+        
+        # If key in gt_fields, the data[key] have transforms synchronous.
         data[KEY_FIELDS] = ['label']
         data = self.transforms(data)
+        if self.mode == 'valid':
+            data['label'] = data['label'][np.newaxis, :, :]
         
         return data
 
@@ -43,7 +51,7 @@ if __name__ == '__main__':
     from deepx import transforms
     from paddle.io import DataLoader
     root = Path.home() / 'imagex_data/networks/optic_disc_seg'
-    dataset = SegDataset(root, transforms=[
+    dataset = manager.DATASETS['SegDataset'](root, transforms=[
         transforms.Resize((512, 512)),],
         mode='valid'
     )
