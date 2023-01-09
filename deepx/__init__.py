@@ -1,1 +1,1 @@
-from . import cvlibs, models, transforms, utils, core
+from . import cvlibs, models, transforms, utils
