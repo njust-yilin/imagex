@@ -6,11 +6,13 @@ from PIL import Image
 from functools import reduce
 
 from deepx.transforms import functional as F
+from deepx.cvlibs import manager
 
 
 KEY_FIELDS = 'trans_fields'
 
 
+@manager.TRANSFORMS.add_component
 class Compose:
     def __init__(self, transforms):
         self.transforms = transforms
@@ -18,7 +20,7 @@ class Compose:
     def __call__(self, data:dict):
         assert 'img' in data
 
-        data['img'] = cv2.imread(data['img'])
+        data['img'] = cv2.imread(data['img']).astype('float32')
         assert isinstance(data['img'], np.ndarray)
         if data['img'].ndim == 3:
             # BGR to RGB
@@ -34,13 +36,13 @@ class Compose:
 
         if data['img'].ndim == 2:
             # HW To CHW
-            data['img'] = data['img'][None, :, :]
-        else:
-            # HWC to CHW
-            data['img'] = np.transpose(data['img'], (2, 0, 1))
+            data['img'] = data['img'][..., np.newaxis]
+        # HWC to CHW
+        data['img'] = np.transpose(data['img'], (2, 0, 1))
         return data
 
 
+@manager.TRANSFORMS.add_component
 class RandomHorizontalFlip:
     """随机水平翻转"""
     def __init__(self, prob=0.5) -> None:
@@ -54,6 +56,7 @@ class RandomHorizontalFlip:
         return data
 
 
+@manager.TRANSFORMS.add_component
 class RandomVerticalFlip:
     """随机垂直翻转"""
     def __init__(self, prob=0.5) -> None:
@@ -67,6 +70,7 @@ class RandomVerticalFlip:
         return data
 
 
+@manager.TRANSFORMS.add_component
 class Resize:
     """尺寸修改"""
      # The interpolation mode
@@ -78,26 +82,32 @@ class Resize:
         'LANCZOS4': cv2.INTER_LANCZOS4
     }
     def __init__(self, target_size=(512, 512), size_divisor=None, interp='LINEAR') -> None:
-        self.target_size = target_size
+        if isinstance(target_size, (tuple, list)):
+            self.target_size = target_size
+        else:
+            self.target_size = (target_size, target_size)
         self.size_divisor = size_divisor
         self.interp = interp
     
     def __call__(self, data:dict) -> dict:
         data['trans_info'].append(('resize', data['img'].shape[0:2]))
+        h, w = data['img'].shape[:2]
+        if self.target_size == (h, w):
+            return data
+
         if self.interp == "RANDOM":
             interp = random.choice(list(self.interp_dict.values()))
         else:
             interp = self.interp_dict[self.interp]
         
-        h, w = data['img'].shape[:2]
-        target_size, _ = F.rescale_size((w, h), self.target_size, self.size_divisor)
-        
-        data['img'] = F.resize(data['img'], target_size, interp)
+        data['img'] = F.resize(data['img'], self.target_size, interp)
         for key in data.get(KEY_FIELDS, []):
-            data[key] = F.resize(data[key], target_size, interp)
+            data[key] = F.resize(data[key], self.target_size, cv2.INTER_NEAREST)
+        
         return data
     
 
+@manager.TRANSFORMS.add_component
 class ResizeRangeScaling:
     """随机尺寸缩放"""
     def __init__(self, min_value=400, max_value=600):
@@ -117,6 +127,7 @@ class ResizeRangeScaling:
         return data
 
 
+@manager.TRANSFORMS.add_component
 class ResizeStepScaling:
     """随机比例缩放"""
     def __init__(self, min_factor=0.75, max_factor=1.25, scale_step=0.25):
@@ -144,7 +155,8 @@ class ResizeStepScaling:
         return data
 
 
-class Normallize:
+@manager.TRANSFORMS.add_component
+class Normalize:
     """图片归一化"""
     def __init__(self, mean=(0.5,), std=(0.5,)):
         assert isinstance(mean, (list, tuple))
@@ -162,6 +174,7 @@ class Normallize:
         return data
 
 
+@manager.TRANSFORMS.add_component
 class Padding:
     """添加边框"""
     def __init__(self, target_size, im_padding=127.5, label_padding=255) -> None:
@@ -206,6 +219,7 @@ class Padding:
         return data
 
 
+@manager.TRANSFORMS.add_component
 class PaddingByAspectRatio:
     """添加边框"""
     def __init__(self, aspect_ratio=1, im_padding=127.5, label_padding=255) -> None:
@@ -229,6 +243,7 @@ class PaddingByAspectRatio:
         return padding(data)
 
 
+@manager.TRANSFORMS.add_component
 class RandomPaddingCrop:
     """随机裁剪"""
     def __init__(self, crop_size=(512, 512), im_padding=127.5, label_padding=255):
@@ -291,6 +306,7 @@ class RandomPaddingCrop:
         return data
 
 
+@manager.TRANSFORMS.add_component
 class RandomCenterCrop:
     """随机中心裁剪"""
     def __init__(self, retain_ratio=(0.5, 0.5)):
@@ -323,6 +339,7 @@ class RandomCenterCrop:
         return data
 
 
+@manager.TRANSFORMS.add_component
 class ScalePadding:
     """中心添加边框并修改尺寸"""
     def __init__(self, target_size=(512, 512), im_padding=127.5, label_padding=255):
@@ -367,6 +384,7 @@ class ScalePadding:
         return data
 
 
+@manager.TRANSFORMS.add_component
 class RandomNoise:
     """随机噪声"""
     def __init__(self, prob=0.5, max_sigma=10.0) -> None:
@@ -384,6 +402,7 @@ class RandomNoise:
         return data
 
 
+@manager.TRANSFORMS.add_component
 class RandomBlur:
     """随机模糊"""
     def __init__(self, prob=0.1, blur_type="gaussian"):
@@ -424,6 +443,7 @@ class RandomBlur:
         return data
 
 
+@manager.TRANSFORMS.add_component
 class RandomRotation:
     """随机旋转"""
     def __init__(self, max_rotation=15, im_padding=127.5, label_padding=255) -> None:
@@ -469,6 +489,7 @@ class RandomRotation:
         return data
 
 
+@manager.TRANSFORMS.add_component
 class RandomScaleAspect:
     """随机横纵比"""
     def __init__(self, min_scale=0.5, aspect_ratio=0.33):
@@ -505,6 +526,7 @@ class RandomScaleAspect:
         return data
 
 
+@manager.TRANSFORMS.add_component
 class RandomDistort:
     """随机构建图像"""
     def __init__(self,
@@ -586,6 +608,7 @@ class RandomDistort:
         return data
 
 
+@manager.TRANSFORMS.add_component
 class RandomAffine:
     def __init__(self,
                  size=(224, 224),
