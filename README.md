@@ -6,10 +6,10 @@
 ### 操作系统
 ubuntu20.04
 
-###python env
+### python env
 miniconda, python3.8
 
-###创建python虚环境:
+### 创建python虚环境:
 ```
 pip install -r requirements.txt -i https://pypi.douban.com/simple --trusted-host=pypi.douban.com
 conda create --name imagex python=3.8```
